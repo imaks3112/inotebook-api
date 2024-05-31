@@ -1,14 +1,15 @@
-const connectToDB = require('./db');
-const express = require('express');
+const connectToDB = require("./db");
+const express = require("express");
 
 connectToDB();
-const app = express()
-const port = 3000
+const app = express();
+const port = 3000;
 
-app.get('/', (req, res) => {
-  res.send('Welcome to Akshay World!')
-})
+app.use(express.json());
+// routes
+app.use("/api/auth", require("./routes/auth"));
+app.use("/api/notes", require("./routes/notes"));
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
-})
+  console.log(`Example app listening on port ${port}`);
+});
