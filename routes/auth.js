@@ -2,6 +2,10 @@ const exporess = require("express");
 const router = exporess.Router();
 const User = require("../models/User");
 const { body, validationResult } = require("express-validator");
+const bcrypt = require('bcryptjs');
+var jwt = require('jsonwebtoken');
+
+const JWT_SECRET = 'akshay';
 
 router.post('/createuser',
   [
@@ -20,14 +24,23 @@ router.post('/createuser',
       if (user) {
         return res.status(400).json({error: 'Email already exist'});
       }
+      const salt = await bcrypt.genSalt(10);
+      const secPassword = await bcrypt.hash(req.body.password, salt);
       
       user = await User.create({
         name: req.body.name,
-        password: req.body.password,
+        password: secPassword,
         email: req.body.email,
       })
   
-        res.send(user);
+      const data = {
+        user: {
+          id: user.id
+        }
+      }
+
+      const authToken = jwt.sign(data, JWT_SECRET);
+      res.send({authToken});
     } catch (error) {
       console.log(error.message);
       res.status(500).send('Some error occured');
