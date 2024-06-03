@@ -39,4 +39,63 @@ router.post('/addnote', fetchuser, [
     }
 });
 
+// Update existing notes : get request
+router.put('/updatenote/:id', fetchuser, async (req, res) => {
+    try {
+        const {title, description, tag } = req.body;
+        
+        const newNote = {};
+        if (title) {
+            newNote.title = title
+        }
+        if (description) {
+            newNote.description = description
+        }
+        if (tag) {
+            newNote.tag = tag
+        }
+
+        // find the note tobe updated
+        let note = await Note.findById(req.params.id);
+
+        if (!note) {
+            return res.status(404).send('Not found!');
+        }
+
+        if (note.user.toString() !== req.user.id) {
+            return res.sendStatus(401).send('Not allowed');
+        }
+
+        note = await Note.findByIdAndUpdate(req.params.id, {$set: newNote}, {new: true})
+
+        res.json(note);
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).send('Some error occured');
+    }
+});
+
+// Delete notes : get request
+router.delete('/deletenote/:id', fetchuser, async (req, res) => {
+    try {
+        // find the note tobe deleted
+        let note = await Note.findById(req.params.id);
+
+        if (!note) {
+            return res.status(404).send({error: 'Not found!'});
+        }
+
+        // allow to delete only user is own
+        if (note.user.toString() !== req.user.id) {
+            return res.sendStatus(401).send('Not allowed');
+        }
+
+        note = await Note.findByIdAndDelete(req.params.id)
+        res.json({success: 'Note has been deleted succesfully', status: '200'});
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).send('Some error occured');
+    }
+});
+
 module.exports = router;
